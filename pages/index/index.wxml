@@ -1,0 +1,225 @@
+<view class="page-shell">
+  <view class="topbar card">
+    <view class="topbar-head">
+      <view>
+        <view class="topbar-title">3D打印耗材库存管理</view>
+      </view>
+      <view class="topbar-badge">个人版</view>
+    </view>
+
+    <view class="quick-actions">
+      <button class="more-btn mini-btn more-dot-btn" bindtap="openMoreActions">...</button>
+      <button class="danger-btn mini-btn" bindtap="confirmClear">清空数据</button>
+      <button class="primary-btn mini-btn" bindtap="openCreate">新增耗材</button>
+    </view>
+  </view>
+
+  <view class="filter-card card">
+    <view class="filter-head">
+      <view class="section-title">筛选与排序</view>
+      <view class="filter-tip">快速筛选当前库存</view>
+    </view>
+    <view class="filter-grid">
+      <input
+        class="input compact-field search-field"
+        placeholder="搜索材质、颜色、品牌、位置"
+        value="{{searchKeyword}}"
+        bindinput="onSearchInput"
+      />
+      <picker range="{{brandFilters}}" value="{{filterBrandIndex}}" bindchange="onBrandFilterChange">
+        <view class="picker-field compact-field">品牌: {{brandFilters[filterBrandIndex] || '所有品牌'}}</view>
+      </picker>
+      <picker range="{{seriesFilters}}" value="{{filterSeriesIndex}}" bindchange="onSeriesFilterChange">
+        <view class="picker-field compact-field">系列: {{seriesFilters[filterSeriesIndex] || '所有系列'}}</view>
+      </picker>
+      <picker range="{{sortFieldLabels}}" value="{{sortFieldIndex}}" bindchange="onSortFieldChange">
+        <view class="picker-field compact-field">字段: {{sortFieldLabels[sortFieldIndex]}}</view>
+      </picker>
+      <picker range="{{sortOrderLabels}}" value="{{sortOrderIndex}}" bindchange="onSortOrderChange">
+        <view class="picker-field compact-field">方向: {{sortOrderLabels[sortOrderIndex]}}</view>
+      </picker>
+    </view>
+  </view>
+
+  <view class="stats-grid">
+    <view class="stat-card card">
+      <view class="stat-label">总库存卷数</view>
+      <view class="stat-value">{{stats.count}}</view>
+    </view>
+    <view class="stat-card card accent-orange">
+      <view class="stat-label">总库存价值</view>
+      <view class="stat-value">{{stats.totalValue}}</view>
+    </view>
+    <view class="stat-card card accent-red">
+      <view class="stat-label">低库存预警</view>
+      <view class="stat-value">{{stats.lowStock}}</view>
+    </view>
+  </view>
+
+  <view class="list-section">
+    <view class="section-title">库存清单</view>
+    <view class="section-subtitle">共 {{displayList.length}} 条符合当前筛选条件</view>
+
+    <block wx:if="{{displayList.length}}">
+      <view class="item-card card" wx:for="{{displayList}}" wx:key="id">
+        <view class="item-top">
+          <view>
+            <view class="item-title">{{item.brand}}</view>
+            <view class="item-meta">{{item.materialType}} · {{item.seriesText}}</view>
+          </view>
+          <view class="chip stock-chip {{item.lowStock ? 'stock-chip-danger' : ''}}">{{item.remain}}g</view>
+        </view>
+
+        <view class="tag-row">
+          <view class="chip brand-chip">{{item.brand}}</view>
+          <view class="chip material-chip">{{item.materialType}}</view>
+          <view class="chip series-chip">{{item.seriesText}}</view>
+        </view>
+
+        <view class="item-body">
+          <view class="color-row">
+            <view class="color-dot" style="background: {{item.colorCode}};"></view>
+            <text class="item-text">{{item.color || '未填写颜色'}}</text>
+          </view>
+          <view class="item-content-row">
+            <image
+              wx:if="{{item.img}}"
+              class="item-image"
+              src="{{item.img}}"
+              mode="aspectFill"
+              bindtap="previewImage"
+              data-src="{{item.img}}"
+            />
+            <view class="item-info-grid {{item.img ? 'item-info-grid-side' : ''}}">
+              <view class="info-pill">规格 {{item.weight}}kg</view>
+              <view class="info-pill">预警 {{item.alertLevel}}g</view>
+              <view class="info-pill">渠道 {{item.supplierText}}</view>
+              <view class="info-pill">位置 {{item.locationText}}</view>
+              <view class="info-pill">单价 {{item.priceText}} 元</view>
+              <view class="info-pill">日期 {{item.dateText}}</view>
+            </view>
+          </view>
+        </view>
+
+        <view class="item-actions">
+          <button class="ghost-btn compact-btn" bindtap="openEdit" data-id="{{item.id}}">编辑</button>
+          <button class="danger-btn compact-btn" bindtap="deleteItem" data-id="{{item.id}}">删除</button>
+        </view>
+      </view>
+    </block>
+
+    <view class="empty-card card" wx:else>
+      <view class="empty-title">当前没有匹配记录</view>
+      <view class="empty-subtitle">可以先新增一条耗材记录，或调整筛选条件。</view>
+    </view>
+  </view>
+
+  <block wx:if="{{showEditor}}">
+    <view class="mask" bindtap="closeEditor"></view>
+    <view class="sheet">
+      <view class="sheet-header">
+        <view>
+          <view class="section-title">{{editingId ? '编辑耗材' : '新增耗材'}}</view>
+          <view class="section-subtitle">带 * 的字段为必填</view>
+        </view>
+        <view class="sheet-close" bindtap="closeEditor">关闭</view>
+      </view>
+
+      <scroll-view class="sheet-scroll" scroll-y>
+        <view class="form-grid">
+          <view class="field">
+            <view class="field-label">品牌 *</view>
+            <picker range="{{brands}}" value="{{formBrandIndex}}" bindchange="onBrandChange">
+              <view class="picker-field form-picker">{{brands[formBrandIndex] || '请选择品牌'}}</view>
+            </picker>
+          </view>
+          <view class="field">
+            <view class="field-label">材质类型 *</view>
+            <picker range="{{materialTypes}}" value="{{formMaterialTypeIndex}}" bindchange="onMaterialTypeChange">
+              <view class="picker-field form-picker">{{materialTypes[formMaterialTypeIndex] || '请选择材质类型'}}</view>
+            </picker>
+          </view>
+        </view>
+
+        <view class="field">
+          <view class="field-label">材质系列</view>
+          <picker range="{{formSeriesOptions}}" value="{{formSeriesIndex}}" bindchange="onSeriesChange">
+            <view class="picker-field form-picker">{{formSeriesOptions[formSeriesIndex] || '未设置'}}</view>
+          </picker>
+        </view>
+
+        <view class="field">
+          <view class="field-label">颜色名称 *</view>
+          <input class="input" data-field="color" placeholder="例如 哑光黑 / 奶白" value="{{form.color}}" bindinput="onFieldInput" />
+          <view class="color-preview-box">
+            <view class="color-dot large-dot" style="background: {{form.colorCode}};"></view>
+            <input class="input color-code-input" data-field="colorCode" placeholder="#ffffff" value="{{form.colorCode}}" bindinput="onFieldInput" />
+          </view>
+          <view class="swatch-row">
+            <view
+              class="swatch {{form.colorCode === item ? 'swatch-active' : ''}}"
+              wx:for="{{colorSwatches}}"
+              wx:key="*this"
+              style="background: {{item}};"
+              bindtap="selectColor"
+              data-color="{{item}}"
+            ></view>
+          </view>
+        </view>
+
+        <view class="field">
+          <view class="field-label">实拍图</view>
+          <view class="upload-row">
+            <button class="ghost-btn compact-btn" bindtap="chooseImage">选择图片</button>
+            <button wx:if="{{form.img}}" class="danger-btn compact-btn" bindtap="removeImage">移除图片</button>
+          </view>
+          <image wx:if="{{form.img}}" class="editor-image" src="{{form.img}}" mode="aspectFill" bindtap="previewEditorImage" />
+        </view>
+
+        <view class="form-grid">
+          <view class="field">
+            <view class="field-label">单卷规格(kg) *</view>
+            <input class="input" data-field="weight" type="digit" placeholder="1.0" value="{{form.weight}}" bindinput="onFieldInput" />
+          </view>
+          <view class="field">
+            <view class="field-label">剩余重量(g) *</view>
+            <input class="input" data-field="remain" type="number" placeholder="1000" value="{{form.remain}}" bindinput="onFieldInput" />
+          </view>
+        </view>
+
+        <view class="form-grid">
+          <view class="field">
+            <view class="field-label">库存预警值(g)</view>
+            <input class="input" data-field="alertLevel" type="number" placeholder="200" value="{{form.alertLevel}}" bindinput="onFieldInput" />
+          </view>
+          <view class="field">
+            <view class="field-label">存放位置</view>
+            <input class="input" data-field="location" placeholder="例如 A-2 货架" value="{{form.location}}" bindinput="onFieldInput" />
+          </view>
+        </view>
+
+        <view class="form-grid">
+          <view class="field">
+            <view class="field-label">购买渠道</view>
+            <picker range="{{formSupplierOptions}}" value="{{formSupplierIndex}}" bindchange="onSupplierChange">
+              <view class="picker-field form-picker">{{formSupplierOptions[formSupplierIndex] || '未选择'}}</view>
+            </picker>
+          </view>
+          <view class="field">
+            <view class="field-label">购入单价(元)</view>
+            <input class="input" data-field="price" type="digit" placeholder="0" value="{{form.price}}" bindinput="onFieldInput" />
+          </view>
+        </view>
+
+        <view class="field">
+          <view class="field-label">购入日期</view>
+          <picker mode="date" value="{{form.date}}" bindchange="onDateChange">
+            <view class="picker-field form-picker">{{form.date}}</view>
+          </picker>
+        </view>
+      </scroll-view>
+
+      <button class="primary-btn submit-btn" bindtap="saveItem">保存记录</button>
+    </view>
+  </block>
+</view>

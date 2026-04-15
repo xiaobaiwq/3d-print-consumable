@@ -1,0 +1,96 @@
+page {
+  background: linear-gradient(180deg, #f7efe3 0%, #f4f6f8 220rpx);
+  color: #1f2933;
+  font-family: "PingFang SC", "Microsoft YaHei", sans-serif;
+  min-height: 100%;
+}
+
+view,
+text,
+button,
+input,
+picker,
+image,
+scroll-view {
+  box-sizing: border-box;
+}
+
+.page-shell {
+  padding: 28rpx 24rpx 36rpx;
+}
+
+.card {
+  background: rgba(255, 255, 255, 0.92);
+  border-radius: 28rpx;
+  padding: 24rpx;
+  box-shadow: 0 12rpx 32rpx rgba(73, 85, 99, 0.08);
+}
+
+.section-title {
+  font-size: 30rpx;
+  font-weight: 700;
+  color: #16202a;
+}
+
+.section-subtitle {
+  margin-top: 8rpx;
+  font-size: 22rpx;
+  color: #6b7280;
+}
+
+.primary-btn {
+  background: linear-gradient(135deg, #2f7df6, #0ea5e9);
+  color: #ffffff;
+  border-radius: 20rpx;
+  font-size: 28rpx;
+  font-weight: 600;
+  line-height: 84rpx;
+}
+
+.ghost-btn {
+  background: #eef4ff;
+  color: #2f7df6;
+  border-radius: 20rpx;
+  font-size: 28rpx;
+  line-height: 76rpx;
+}
+
+.danger-btn {
+  background: #fff1f0;
+  color: #d14343;
+  border-radius: 20rpx;
+  font-size: 28rpx;
+  line-height: 76rpx;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 8rpx 16rpx;
+  border-radius: 999rpx;
+  font-size: 22rpx;
+  font-weight: 600;
+}
+
+.mask {
+  position: fixed;
+  inset: 0;
+  background: rgba(17, 24, 39, 0.48);
+  z-index: 90;
+}
+
+.sheet {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 91;
+  background: #ffffff;
+  border-radius: 36rpx 36rpx 0 0;
+  padding: 24rpx 24rpx calc(24rpx + env(safe-area-inset-bottom));
+  max-height: 88vh;
+}
+
+.sheet-scroll {
+  max-height: 74vh;
+}

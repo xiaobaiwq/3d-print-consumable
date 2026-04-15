@@ -1,0 +1,606 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>3D打印耗材库存管理系统-个人版</title>
+    <style>
+        *{margin:0;padding:0;box-sizing:border-box;font-family:'Segoe UI', system-ui, sans-serif}
+        body{background:#eef2f7;padding:16px;color:#333}
+        .container{max-width:1400px;margin:0 auto}
+        .header{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;padding-bottom:10px;border-bottom:1px solid #ddd}
+        .logo{font-size:20px;font-weight:700;color:#2c3e50}
+        .btn-group{display:flex;gap:10px;flex-wrap:wrap}
+        .btn{padding:10px 18px;border:none;border-radius:8px;cursor:pointer;font-weight:500;transition:all .2s}
+        .btn-primary{background:#3b82f6;color:white}
+        .btn-primary:hover{background:#2563eb}
+        .btn-success{background:#10b981;color:white}
+        .btn-success:hover{background:#059669}
+        .btn-danger{background:#ef4444;color:white}
+        .btn-danger:hover{background:#dc2626}
+        .btn-secondary{background:#6b7280;color:white}
+        .btn-secondary:hover{background:#4b5563}
+        .btn-warning{background:#f59e0b;color:white}
+        .btn-warning:hover{background:#d97006}
+        .btn-info{background:#06b6d4;color:white}
+        .btn-info:hover{background:#0891b2}
+        .card{background:white;border-radius:12px;box-shadow:0 4px 12px rgba(0,0,0,.08);padding:24px;margin-bottom:20px}
+        .grid{display:grid;grid-template-columns:repeat(auto-fit, minmax(280px, 1fr));gap:15px;margin-bottom:20px}
+        .form-group{margin-bottom:15px}
+        .form-group label{display:block;margin-bottom:6px;font-weight:600;font-size:14px;color:#4b5563}
+        .form-control{width:100%;padding:12px;border:1px solid #d1d5db;border-radius:8px;font-size:14px;transition:border-color .2s}
+        .form-control:focus{outline:none;border-color:#3b82f6;box-shadow:0 0 0 3px rgba(59,130,246,.1)}
+        select.form-control{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2' stroke-linecap='none' stroke-linejoin='none'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 10px center;background-size:16px}
+        table{width:100%;border-collapse:collapse;margin-top:10px}
+        th{background:#f9fafb;padding:14px;text-align:left;font-weight:600;color:#374515;border-bottom:2px solid #e5e7eb}
+        td{padding:14px;border-bottom:1px solid #e5e7eb}
+        tr:hover td{background:#f9fafb}
+        .low-stock{background:#fee2e2;color:#dc2626;font-weight:500}
+        .search-bar{display:flex;gap:10px;margin-bottom:20px;flex-wrap:wrap}
+        .search-bar input{flex:1;min-width:200px}
+        .search-bar select{flex:0 0 180px}
+        .badge{padding:4px 8px;border-radius:6px;font-size:12px;font-weight:600}
+        .badge-brand{background:#dbeafe;color:#1e40af}
+        .badge-series{background:#fef3c7;color:#92400e}
+        .badge-material{background:#d1fae5;color:#065f46}
+        .color-preview{width:24px;height:24px;border-radius:6px;border:1px solid #ddd;display:inline-block;vertical-align:middle;margin-right:8px}
+        .color-input-group{display:flex;gap:10px;align-items:center}
+        .color-picker{width:50px;height:42px;padding:0;border:none;border-radius:8px;cursor:pointer}
+        .stats{display:grid;grid-template-columns:repeat(auto-fit, minmax(200px, 1fr));gap:15px;margin-top:20px}
+        .stat-card{background:white;padding:16px;border-radius:10px;box-shadow:0 2px 8px rgba(0,0,0,.05)}
+        .stat-card .title{font-size:14px;color:#6b7280;margin-bottom:4px}
+        .stat-card .value{font-size:22px;font-weight:700;color:#1f2937}
+        .modal{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.5);display:none;justify-content:center;align-items:center;z-index:100}
+        .modal-content{background:white;width:600px;max-height:90vh;overflow-y:auto;border-radius:12px;padding:24px}
+        .close{float:right;font-size:24px;cursor:pointer;color:#6b7280}
+        .modal-header{border-bottom:1px solid #e5e7eb;padding-bottom:10px;margin-bottom:15px}
+        .modal-title{font-size:18px;font-weight:600}
+        .img-preview{margin-top:8px;width:100%;height:120px;object-fit:cover;border-radius:8px;border:1px solid #ddd;display:none}
+        .file-btn{padding:8px 12px;background:#f3f4f6;border:1px solid #d1d5db;border-radius:6px;cursor-pointer}
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="header">
+        <div class="logo">📊 3D打印耗材库存管理系统-个人版</div>
+        <div class="btn-group">
+            <button class="btn btn-warning" onclick="backupData()">💾 备份数据</button>
+            <button class="btn btn-success" onclick="restoreData()">🔄 还原数据</button>
+            <button class="btn btn-info" onclick="importFromExcel()">📤 导入Excel</button>
+            <button class="btn btn-secondary" onclick="exportToExcel()">📥 导出Excel</button>
+            <button class="btn btn-danger" onclick="clearData()">🗑️ 清空数据</button>
+            <button class="btn btn-primary" onclick="openModal()">➕ 新增耗材</button>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="search-bar">
+            <input type="text" id="search" class="form-control" placeholder="搜索 材质/颜色/品牌/位置..." oninput="render()">
+            <select id="filterBrand" class="form-control" onchange="render()">
+                <option value="">所有品牌</option>
+            </select>
+            <select id="filterSeries" class="form-control" onchange="render()">
+                <option value="">所有系列</option>
+            </select>
+            <select id="sortBy" class="form-control" onchange="render()">
+                <option value="default">默认排序</option>
+                <option value="materialType">材料类型</option>
+                <option value="brand">品牌</option>
+                <option value="date">购入日期</option>
+                <option value="price">购入单价</option>
+                <option value="remain">剩余重量</option>
+            </select>
+            <select id="sortOrder" class="form-control" onchange="render()">
+                <option value="asc">升序</option>
+                <option value="desc">降序</option>
+            </select>
+        </div>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>品牌</th>
+                    <th>材质类型</th>
+                    <th>材质系列</th>
+                    <th>颜色</th>
+                    <th>规格</th>
+                    <th>剩余重量</th>
+                    <th>购入日期</th>
+                    <th>操作</th>
+                </tr>
+            </thead>
+            <tbody id="list"></tbody>
+        </table>
+    </div>
+
+    <div class="stats">
+        <div class="stat-card">
+            <div class="title">总库存卷数</div>
+            <div id="statCount">0</div>
+        </div>
+        <div class="stat-card">
+            <div class="title">总库存价值(元)</div>
+            <div id="statValue">0.00</div>
+        </div>
+        <div class="stat-card">
+            <div class="title">低库存预警数</div>
+            <div id="statLowStock">0</div>
+        </div>
+    </div>
+</div>
+
+<!-- 模态框 -->
+<div class="modal" id="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <span class="close" onclick="closeModal()">&times;</span>
+            <h2 class="modal-title" id="modalTitle">新增耗材</h2>
+        </div>
+        <input type="hidden" id="editId">
+        
+        <div class="grid">
+            <div class="form-group">
+                <label>品牌 *</label>
+                <select id="brand" class="form-control" required>
+                    <option value="">请选择品牌</option>
+                    <option value="拓竹 (Bambu Lab)">拓竹 (Bambu Lab)</option>
+                    <option value="Kexcelled">Kexcelled</option>
+                    <option value="Polymaker">Polymaker</option>
+                    <option value="Panchorma">Panchorma</option>
+                    <option value="Polylite">Polylite</option>
+                    <option value="彩多屋">彩多屋</option>
+                    <option value="eSUN 易生">eSUN 易生</option>
+                    <option value="三绿 (SUNLU)">三绿 (SUNLU)</option>
+                    <option value="Sailner">Sailner</option>
+                    <option value="余兄弟">余兄弟</option>
+                    <option value="蓝竹科技">蓝竹科技</option>
+                    <option value="优线三维">优线三维</option>
+                    <option value="瓦力增材">瓦力增材</option>
+                    <option value="三慈">三慈</option>
+                    <option value="方途">方途</option>
+                    <option value="大简">大简</option>
+                    <option value="没毛病 Bye hassle">没毛病 Bye hassle</option>
+                    <option value="JAYO">JAYO</option>
+                    <option value="R3D">R3D</option>
+                    <option value="魔创 (McCreate)">魔创 (McCreate)</option>
+                    <option value="爱丽兹">爱丽兹</option>
+                    <option value="易型">易型</option>
+                    <option value="爱乐酷">爱乐酷</option>
+                    <option value="维籁增材">维籁增材</option>
+                    <option value="新森">新森</option>
+                    <option value="3Dhojor">3Dhojor</option>
+                    <option value="频妙">频妙</option>
+                    <option value="叁生万物">叁生万物</option>
+                    <option value="海螺号">海螺号</option>
+                    <option value="彩格">彩格</option>
+                    <option value="七彩蚕">七彩蚕</option>
+                    <option value="科雷迪">科雷迪</option>
+                    <option value="创想三维">创想三维</option>
+                    <option value="天瑞">天瑞</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>材质类型 *</label>
+                <select id="materialType" class="form-control" required>
+                    <option value="">请选择材质类型</option>
+                    <option value="PLA">PLA</option>
+                    <option value="PLA+">PLA+</option>
+                    <option value="PLA+2.0">PLA+2.0</option>
+                    <option value="PETG">PETG</option>
+                    <option value="ABS">ABS</option>
+                    <option value="ASA">ASA</option>
+                    <option value="ASA-CF">ASA-CF</option>
+                    <option value="TPU">TPU</option>
+                    <option value="TPE">TPE</option>
+                    <option value="PA">PA</option>
+                    <option value="PC">PC</option>
+                    <option value="PET">PET</option>
+                    <option value="PPA">PPA</option>
+                    <option value="PAHT">PAHT</option>
+                    <option value="碳纤维">碳纤维</option>
+                    <option value="玻璃纤维">玻璃纤维</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label>材质系列</label>
+            <select id="series" class="form-control">
+                <option value="">请选择系列</option>
+                <option value="Silk">Silk (丝绸)</option>
+                <option value="Matte">Matte (哑光)</option>
+                <option value="Basic">Basic (基础)</option>
+                <option value="Lite">Lite (轻量化)</option>
+                <option value="Sparkle">Sparkle (闪粉)</option>
+                <option value="Translucent">Translucent (半透明)</option>
+                <option value="Rapid">Rapid (高速打印)</option>
+                <option value="GF">GF (玻璃纤维增强)</option>
+                <option value="CF">CF (碳纤维增强)</option>
+                <option value="HF">HF (高流动性)</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label>颜色选择</label>
+            <div class="color-input-group">
+                <input type="color" id="colorPicker" class="color-picker" value="#ffffff">
+                <input type="text" id="color" class="form-control" placeholder="颜色名称" required>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label>上传实拍图</label>
+            <input type="file" id="imgUpload" accept="image/*" onchange="previewImage()" class="file-btn">
+            <img id="imgPreview" class="img-preview">
+            <input type="hidden" id="imgBase64">
+        </div>
+
+        <div class="grid">
+            <div class="form-group">
+                <label>单卷规格(kg) *</label>
+                <input type="number" id="weight" class="form-control" placeholder="1.0" step="0.1" min="0.1" required>
+            </div>
+            <div class="form-group">
+                <label>剩余重量(g) *</label>
+                <input type="number" id="remain" class="form-control" placeholder="1000" required>
+            </div>
+        </div>
+
+        <div class="grid">
+            <div class="form-group">
+                <label>库存预警值(g)</label>
+                <input type="number" id="alertLevel" class="form-control" value="200">
+            </div>
+            <div class="form-group">
+                <label>存放位置</label>
+                <input type="text" id="location" class="form-control">
+            </div>
+        </div>
+
+        <div class="grid">
+            <div class="form-group">
+                <label>购买渠道</label>
+                <select id="supplier" class="form-control">
+                    <option value="">请选择渠道</option>
+                    <option value="拼多多">拼多多</option>
+                    <option value="京东">京东</option>
+                    <option value="淘宝">淘宝</option>
+                    <option value="抖音">抖音</option>
+                    <option value="小红书">小红书</option>
+                    <option value="其他">其他</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>购入单价(元)</label>
+                <input type="number" id="price" class="form-control" step="0.01">
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label>购入日期</label>
+            <input type="date" id="date" class="form-control">
+        </div>
+
+        <button class="btn btn-primary" style="width:100%;margin-top:10px" onclick="save()">保存记录</button>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
+<script>
+let data = JSON.parse(localStorage.getItem('proFilamentData')) || [];
+const modal = document.getElementById('modal');
+const STORAGE_KEY = 'proFilamentData';
+
+render();
+updateStats();
+
+// 颜色同步
+document.getElementById('colorPicker').addEventListener('input', function() {
+    document.getElementById('color').style.borderLeft = `5px solid ${this.value}`;
+});
+
+// 图片预览
+function previewImage() {
+    const file = document.getElementById('imgUpload').files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = e => {
+        document.getElementById('imgPreview').src = e.target.result;
+        document.getElementById('imgPreview').style.display = 'block';
+        document.getElementById('imgBase64').value = e.target.result;
+    };
+    reader.readAsDataURL(file);
+}
+
+// 备份
+function backupData() {
+    if (data.length === 0) return alert('暂无数据可备份！');
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `3D打印耗材备份_${new Date().toLocaleDateString()}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+    alert('备份成功！');
+}
+
+// 还原
+function restoreData() {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = '.json';
+    input.onchange = e => {
+        const reader = new FileReader();
+        reader.onload = e => {
+            try {
+                const restored = JSON.parse(e.target.result);
+                if (!Array.isArray(restored)) throw new Error();
+                if (confirm('确认覆盖现有数据？')) {
+                    data = restored;
+                    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+                    render(); updateStats();
+                    alert('还原成功！');
+                }
+            } catch {
+                alert('还原失败：文件格式错误');
+            }
+        };
+        reader.readAsText(e.target.files[0]);
+    };
+    input.click();
+}
+
+// 清空数据
+function clearData() {
+    if (!confirm('确定清空所有数据？不可恢复！')) return;
+    data = [];
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    render(); updateStats();
+    alert('已清空所有数据');
+}
+
+// Excel 导入（稳定版）
+function importFromExcel() {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = '.xlsx,.xls,.csv';
+    input.onchange = e => {
+        const reader = new FileReader();
+        reader.onload = e => {
+            try {
+                const wb = XLSX.read(e.target.result, { type: 'binary' });
+                const json = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]]);
+                if (json.length === 0) return alert('文件无数据');
+                if (!confirm(`导入 ${json.length} 条数据？`)) return;
+
+                const items = json.map(row => ({
+                    id: Date.now() + Math.random(),
+                    brand: row['品牌'] || row.品牌 || '',
+                    materialType: row['材质类型'] || row.材质类型 || '',
+                    series: row['材质系列'] || row.材质系列 || '',
+                    color: row['颜色'] || row.颜色 || '',
+                    colorCode: row['色值'] || row.色值 || '#ffffff',
+                    weight: row['规格(kg)'] || row.规格 || 1,
+                    remain: row['剩余(g)'] || row.剩余 || 1000,
+                    alertLevel: row['预警值'] || 200,
+                    location: row['位置'] || row.存放位置 || '',
+                    supplier: row['购买渠道'] || row.渠道 || '',
+                    price: row['单价(元)'] || row.单价 || 0,
+                    date: row['购入日期'] || row.日期 || new Date().toISOString().split('T')[0],
+                    img: ''
+                }));
+
+                data = [...data, ...items];
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+                render(); updateStats();
+                alert(`导入成功：${items.length} 条`);
+            } catch (err) {
+                alert('导入失败：文件格式错误');
+            }
+        };
+        reader.readAsBinaryString(e.target.files[0]);
+    };
+    input.click();
+}
+
+// 打开弹窗
+function openModal() {
+    modal.style.display = 'flex';
+    document.getElementById('modalTitle').innerText = '新增耗材';
+    document.getElementById('editId').value = '';
+    document.getElementById('brand').value = '';
+    document.getElementById('materialType').value = '';
+    document.getElementById('series').value = '';
+    document.getElementById('colorPicker').value = '#fff';
+    document.getElementById('color').value = '';
+    document.getElementById('color').style.borderLeft = 'none';
+    document.getElementById('imgUpload').value = '';
+    document.getElementById('imgPreview').style.display = 'none';
+    document.getElementById('imgBase64').value = '';
+    document.getElementById('weight').value = '1.0';
+    document.getElementById('remain').value = '1000';
+    document.getElementById('alertLevel').value = '200';
+    document.getElementById('location').value = '';
+    document.getElementById('supplier').value = '';
+    document.getElementById('price').value = '';
+    document.getElementById('date').value = new Date().toISOString().split('T')[0];
+}
+
+// 关闭弹窗
+function closeModal() {
+    modal.style.display = 'none';
+}
+
+// 保存
+function save() {
+    const id = document.getElementById('editId').value || Date.now();
+    const item = {
+        id,
+        brand: document.getElementById('brand').value,
+        materialType: document.getElementById('materialType').value,
+        series: document.getElementById('series').value,
+        color: document.getElementById('color').value,
+        colorCode: document.getElementById('colorPicker').value,
+        img: document.getElementById('imgBase64').value,
+        weight: document.getElementById('weight').value,
+        remain: document.getElementById('remain').value,
+        alertLevel: document.getElementById('alertLevel').value,
+        location: document.getElementById('location').value,
+        supplier: document.getElementById('supplier').value,
+        price: document.getElementById('price').value || 0,
+        date: document.getElementById('date').value
+    };
+
+    data = document.getElementById('editId').value
+        ? data.map(d => d.id == id ? item : d)
+        : [...data, item];
+
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    closeModal();
+    render();
+    updateStats();
+}
+
+// 编辑
+function edit(id) {
+    const d = data.find(item => item.id == id);
+    document.getElementById('modalTitle').innerText = '编辑耗材';
+    document.getElementById('editId').value = id;
+    document.getElementById('brand').value = d.brand;
+    document.getElementById('materialType').value = d.materialType;
+    document.getElementById('series').value = d.series;
+    document.getElementById('colorPicker').value = d.colorCode || '#fff';
+    document.getElementById('color').value = d.color;
+    document.getElementById('color').style.borderLeft = `5px solid ${d.colorCode}`;
+    document.getElementById('imgBase64').value = d.img || '';
+    document.getElementById('imgPreview').src = d.img || '';
+    document.getElementById('imgPreview').style.display = d.img ? 'block' : 'none';
+    document.getElementById('weight').value = d.weight;
+    document.getElementById('remain').value = d.remain;
+    document.getElementById('alertLevel').value = d.alertLevel;
+    document.getElementById('location').value = d.location;
+    document.getElementById('supplier').value = d.supplier;
+    document.getElementById('price').value = d.price;
+    document.getElementById('date').value = d.date;
+    modal.style.display = 'flex';
+}
+
+// 删除
+function del(id) {
+    if (!confirm('确定删除？')) return;
+    data = data.filter(d => d.id != id);
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    render();
+    updateStats();
+}
+
+// 渲染列表
+function render() {
+    const list = document.getElementById('list');
+    const kw = document.getElementById('search').value.toLowerCase().trim();
+    const fb = document.getElementById('filterBrand').value;
+    const fs = document.getElementById('filterSeries').value;
+    const sortBy = document.getElementById('sortBy').value;
+    const sortOrder = document.getElementById('sortOrder').value;
+
+    let filtered = data.filter(d => {
+        const matchSearch = !kw ||
+            (d.brand || '').toLowerCase().includes(kw) ||
+            (d.materialType || '').toLowerCase().includes(kw) ||
+            (d.series || '').toLowerCase().includes(kw) ||
+            (d.color || '').toLowerCase().includes(kw) ||
+            (d.location || '').toLowerCase().includes(kw) ||
+            (d.supplier || '').toLowerCase().includes(kw);
+        const matchBrand = !fb || d.brand === fb;
+        const matchSeries = !fs || d.series === fs;
+        return matchSearch && matchBrand && matchSeries;
+    });
+
+    // 排序
+    if (sortBy !== 'default') {
+        filtered.sort((a, b) => {
+            let valA, valB;
+            switch (sortBy) {
+                case 'materialType': valA = a.materialType || ''; valB = b.materialType || ''; break;
+                case 'brand': valA = a.brand || ''; valB = b.brand || ''; break;
+                case 'date': valA = new Date(a.date) || 0; valB = new Date(b.date) || 0; break;
+                case 'price': valA = parseFloat(a.price) || 0; valB = parseFloat(b.price) || 0; break;
+                case 'remain': valA = parseInt(a.remain) || 0; valB = parseInt(b.remain) || 0; break;
+                default: return 0;
+            }
+            return sortOrder === 'asc' ? (valA > valB ? 1 : -1) : (valA < valB ? 1 : -1);
+        });
+    }
+
+    updateFilterOptions();
+    list.innerHTML = filtered.map(d => {
+        const low = d.alertLevel && +d.remain < +d.alertLevel;
+        return `
+        <tr>
+            <td><span class="badge badge-brand">${d.brand}</span></td>
+            <td><span class="badge badge-material">${d.materialType}</span></td>
+            <td><span class="badge badge-series">${d.series || '-'}</span></td>
+            <td>
+                <span class="color-preview" style="background:${d.colorCode || '#fff'}"></span>
+                ${d.color}
+                ${d.img ? `<br><img src="${d.img}" style="width:60px;height:60px;border-radius:4px;object-fit:cover;margin-top:4px">` : ''}
+            </td>
+            <td>${d.weight}kg</td>
+            <td class="${low ? 'low-stock' : ''}">${d.remain}g ${low ? '⚠️' : ''}</td>
+            <td>${d.date}</td>
+            <td>
+                <button class="btn btn-success" onclick="edit('${d.id}')">编辑</button>
+                <button class="btn btn-danger" onclick="del('${d.id}')">删除</button>
+            </td>
+        </tr>`;
+    }).join('');
+}
+
+// 更新筛选下拉框
+function updateFilterOptions() {
+    const brands = [...new Set(data.map(i => i.brand).filter(Boolean))];
+    const series = [...new Set(data.map(i => i.series).filter(Boolean))];
+    const bSel = document.getElementById('filterBrand');
+    const sSel = document.getElementById('filterSeries');
+    const cb = bSel.value;
+    const cs = sSel.value;
+
+    bSel.innerHTML = '<option value="">所有品牌</option>';
+    brands.forEach(b => bSel.innerHTML += `<option value="${b}">${b}</option>`);
+    sSel.innerHTML = '<option value="">所有系列</option>';
+    series.forEach(s => sSel.innerHTML += `<option value="${s}">${s}</option>`);
+
+    bSel.value = cb;
+    sSel.value = cs;
+}
+
+// 更新统计
+function updateStats() {
+    const count = data.length;
+    const total = data.reduce((s, i) => s + (+i.price || 0), 0);
+    const low = data.filter(d => d.alertLevel && +d.remain < +d.alertLevel).length;
+    document.getElementById('statCount').innerText = count;
+    document.getElementById('statValue').innerText = total.toFixed(2);
+    document.getElementById('statLowStock').innerText = low;
+}
+
+// 导出 Excel
+function exportToExcel() {
+    if (data.length === 0) return alert('无数据可导出');
+    const header = ['品牌','材质类型','材质系列','颜色','色值','规格(kg)','剩余(g)','预警值','位置','购买渠道','单价(元)','购入日期'];
+    const rows = data.map(d => [
+        d.brand, d.materialType, d.series, d.color, d.colorCode,
+        d.weight, d.remain, d.alertLevel, d.location, d.supplier, d.price, d.date
+    ]);
+    const csv = [header, ...rows].map(r => r.join(',')).join('\n');
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `3D打印耗材库存_${new Date().toLocaleDateString()}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+}
+</script>
+</body>
+</html>

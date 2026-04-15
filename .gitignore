@@ -1,0 +1,91 @@
+### Node
+# Dependencies
+node_modules/
+miniprogram_npm/
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Runtime data
+*.pid
+*.pid.lock
+
+# Coverage
+coverage/
+*.lcov
+.nyc_output
+
+# Build output
+dist/
+build/Release
+
+# TypeScript cache
+*.tsbuildinfo
+
+# Framework build output and caches
+.cache
+.parcel-cache
+.next
+out/
+.nuxt
+
+# dotenv environment variable files
+.env
+.env.local
+.env.*.local
+
+# npm cache directory
+.npm
+*.tgz
+
+# yarn v2
+.yarn/cache
+.yarn/unplugged
+.yarn/install-state.gz
+.pnp.*
+
+### WeChat Mini Program
+# Local private project settings
+project.private.config.json
+
+# Local upload / preview records and temporary files
+project.config.*.json
+!project.config.json
+
+# Build output and local generated assets
+dist/
+build/
+temp/
+tmp/
+
+# DevTools / plugin / pack cache
+.wxcache/
+
+### IDE / Editor
+.vscode/
+.idea/
+.history/
+*.swp
+*.swo
+*.tmp
+*.temp
+
+### Windows
+# Windows thumbnail cache files
+Thumbs.db
+
+# Folder config file
+[Dd]esktop.ini
+
+# Recycle Bin used on file shares
+$RECYCLE.BIN/
+
+# Windows shortcuts
+*.lnk
+
+### macOS
+.DS_Store
