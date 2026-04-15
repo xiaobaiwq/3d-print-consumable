@@ -219,7 +219,9 @@
         </view>
       </scroll-view>
 
-      <button class="primary-btn submit-btn" bindtap="saveItem">保存记录</button>
+      <view class="sheet-footer">
+        <button class="primary-btn submit-btn" bindtap="saveItem">保存记录</button>
+      </view>
     </view>
   </block>
 </view>

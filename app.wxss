@@ -87,10 +87,12 @@ scroll-view {
   z-index: 91;
   background: #ffffff;
   border-radius: 36rpx 36rpx 0 0;
-  padding: 24rpx 24rpx calc(24rpx + env(safe-area-inset-bottom));
+  padding: 24rpx 24rpx 0;
   max-height: 88vh;
+  overflow: hidden;
 }
 
 .sheet-scroll {
-  max-height: 74vh;
+  max-height: calc(88vh - 220rpx - env(safe-area-inset-bottom));
+  box-sizing: border-box;
 }
